@@ -31,7 +31,7 @@ def decision_tree_create(training_data, create_method, create_threshold, final_d
     # 统计训练集里面一共有多少种特征，并把特征的字符串单独提取出来做一个列表
     tmp_feature = training_data[0]
     total_feature_array = list(tmp_feature.keys())
-    total_feature_array.remove(final_decision_class)
+    total_feature_array.remove(final_decision_class)  # 删掉最终代表最终决策的key
     feature_number = len(total_feature_array)
 
     # 初始化信息增益字典
@@ -101,7 +101,6 @@ def decision_tree_create(training_data, create_method, create_threshold, final_d
                 tmp_feature_array.append(tmp_feature_dict[max_feature_name])  # 每种特征有哪些取值
 
             tmp_feature_unique = list(set(tmp_feature_array))
-            new_training_data = []
             decision_tree = TreeNode()
             decision_tree.feature = max_feature_name
             decision_tree.child_list = []
@@ -112,11 +111,7 @@ def decision_tree_create(training_data, create_method, create_threshold, final_d
 
             for feature_name in tmp_feature_unique:
                 new_feature_matrix_idx = [i for i, v in enumerate(tmp_feature_array) if v == feature_name]
-                len_idx = len(new_feature_matrix_idx)
-                new_training_data = []
-                for tmp_idx in range(0, len_idx):
-                    new_training_data.append(training_data[new_feature_matrix_idx[tmp_idx]])
-
+                new_training_data = data_select(training_data, new_feature_matrix_idx)
                 tmp_child_tree = (decision_tree_create(new_training_data, create_method,
                                                        create_threshold, final_decision_class, used_feature_array))
                 decision_tree.add_child(tmp_child_tree)
@@ -146,13 +141,9 @@ def calc_information_gain(feature_array, class_list):
         # 计算每一个特征的条件熵
         # 返回feature_array中所有当前特征tmp_feature所在的位置
         tmp_feature_idx = [i for i, v in enumerate(feature_array) if v == tmp_feature]
-        len_idx = len(tmp_feature_idx)
-        class_in_feature_array = []
-        for tmp_idx in range(0, len_idx):
-            class_in_feature_array.append(class_list[tmp_feature_idx[tmp_idx]])
-
+        class_in_feature_array = data_select(class_list, tmp_feature_idx)
         h_data_idx = calc_entropy(class_in_feature_array)  # 计算H(Di)
-        h_data_in_a = h_data_in_a + len_idx/len_class*h_data_idx
+        h_data_in_a = h_data_in_a + len(tmp_feature_idx)/len_class*h_data_idx
 
     # g(D,A) = H(D) - H(D|A)
     information_gain = h_data - h_data_in_a
@@ -202,6 +193,23 @@ def calc_entropy(class_list, log_method='log2'):
     return h_data
 
 
+def data_select(input_list, select_idx):
+    # name   :       data_select
+    # author :       CaiZhongheng
+    # describe:      data_select
+    # input  :       input_list       1xN list,
+    #                select_idx       the list of idx, which wanted to be selected in input_list
+    # output :       select_list      the output list in select idx of input_list
+    # date           version          record
+    # 2018.07.25     v1.0             init
+    len_idx = len(select_idx)
+    select_list = []
+    for tmp_idx in range(0, len_idx):
+        select_list.append(input_list[select_idx[tmp_idx]])
+
+    return select_list
+
+
 class TreeNode:
     # initiate inner node
     def __int__(self, feature, feature_dict, child_list, final_decision):
@@ -215,5 +223,4 @@ class TreeNode:
 
     def add_dict(self, key, value):
         self.feature_dict[key] = value
-
 
