@@ -39,7 +39,7 @@ def decision_tree_create(training_data, create_method, create_threshold, final_d
     # 求得训练数据的个数
     len_training_data = len(training_data)
 
-    if create_method == 'ID3':
+    if create_method == 'ID3' or 'C4.5':
         # 若所有训练集都属于一个分类，那这就是单结点树，将该类作为该节点的类标记，返回
         if final_class_number == 1:
             decision_tree = TreeNode()
@@ -69,7 +69,10 @@ def decision_tree_create(training_data, create_method, create_threshold, final_d
                 tmp_feature_dict = training_data[data_idx]
                 tmp_feature_array.append(tmp_feature_dict[feature_name])
 
-            gain_dict[feature_name] = calc_information_gain(tmp_feature_array, class_list)
+            if create_method == 'ID3':
+                gain_dict[feature_name] = calc_information_gain(tmp_feature_array, class_list)
+            else:
+                gain_dict[feature_name] = calc_information_gain_ratio(tmp_feature_array, class_list)
 
         # 找到信息增益最大的特征
         max_feature_name = []
@@ -119,6 +122,29 @@ def decision_tree_create(training_data, create_method, create_threshold, final_d
                 feature_unique_idx = feature_unique_idx + 1
 
         return decision_tree
+
+
+def calc_information_gain_ratio(feature_array, class_list):
+    # name   :       calc_information_gain_ratio
+    # author :       CaiZhongheng
+    # describe:      calc_information_gain
+    # input  :       feature_array    1xN array, the N is the number of training data
+    #                class_list       1xN array, the N is the number of training data
+    # output :       information_gain the calculated of information gain
+    # date           version          record
+    # 2018.07.15     v1.0             init
+
+    # Calculate the information gain g(D,A)
+    information_gain = calc_information_gain(feature_array, class_list)
+    # Calculate the information gain HA(D)
+    h_data = calc_entropy(feature_array)
+    # Calculate the information gain ratio
+    if h_data == 0:
+        information_gain_ratio = 0
+    else:
+        information_gain_ratio = information_gain/h_data
+
+    return information_gain_ratio
 
 
 def calc_information_gain(feature_array, class_list):
@@ -223,4 +249,3 @@ class TreeNode:
 
     def add_dict(self, key, value):
         self.feature_dict[key] = value
-
