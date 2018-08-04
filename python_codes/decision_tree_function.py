@@ -14,6 +14,7 @@ def decision_tree_create(training_data, create_method, create_threshold, final_d
     # output :       decision_tree          the created decision tree
     # date           version                record
     # 2018.07.23     v1.0                   init
+    # 2018.08.04     v1.1                   将used_feature_array在中间运行时存入tuple，防止因为递归调用而改变值
 
     # 首先查看有多少种最终决策的分类
     class_list = []  # 从训练集中提取出的每个数据的最终决策分类组成的列表
@@ -97,6 +98,8 @@ def decision_tree_create(training_data, create_method, create_threshold, final_d
         else:
             # 否则，使用该特征来生成决策子树
             used_feature_array.append(max_feature_name)  # 表明这个特征已经用过了
+            tmp_store_used_feature = tuple(used_feature_array)
+            # 必须用tuple来保存，否则在递归调用中used_feature_array会在不同分支都被修改值，造成错误
 
             tmp_feature_array = []
             for data_idx in range(0, len_training_data):
@@ -120,6 +123,7 @@ def decision_tree_create(training_data, create_method, create_threshold, final_d
                 decision_tree.add_child(tmp_child_tree)
                 decision_tree.add_dict(feature_name, feature_unique_idx)
                 feature_unique_idx = feature_unique_idx + 1
+                used_feature_array = list(tmp_store_used_feature)
 
         return decision_tree
 
